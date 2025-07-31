@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user_service
+    ports:
+      - "3000:3000"
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@db:5432/user_service_development
+      RAILS_MASTER_KEY: 9608410babaad32bc16f11aeb7011a79
+    depends_on:
+      - db
+    volumes:
+      - ./user-service:/rails
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+  post_service:
+    build:
+      context: ./post-service
+    environment:
+      MONGO_URI: mongodb://mongo:27017/posts_db
+    depends_on:
+      - mongo
+    ports:
+      - "4000:4000"
+  
+  db:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_service_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
+  mongodata:
